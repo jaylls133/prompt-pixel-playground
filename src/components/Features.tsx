@@ -1,5 +1,5 @@
 
-import { Camera, Gallery, Settings } from "lucide-react";
+import { Camera, GalleryHorizontal, Settings } from "lucide-react";
 
 const Features = () => {
   const features = [
@@ -13,7 +13,7 @@ const Features = () => {
       name: "Image Gallery",
       description:
         "All your generated images are saved in your personal gallery for easy access and sharing.",
-      icon: Gallery,
+      icon: GalleryHorizontal,
     },
     {
       name: "Advanced Settings",
