@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     // Initialize the Replicate API client
     // In a real application, you would get this from an environment variable
     const replicate = new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN || "r8_KIIhk5FVcmriCilgYiHBn7awN4reXyy3jz68N",
+      auth: process.env.REPLICATE_API_TOKEN || 'r8_KIIhk5FVcmriCilgYiHBn7awN4reXyy3jz68N',
     });
 
     // Generate the image using Flux Schnell model
