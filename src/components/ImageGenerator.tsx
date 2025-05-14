@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Settings, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateImage } from "@/api/generate-image";
 
 const ImageGenerator = () => {
   const [prompt, setPrompt] = useState("");
@@ -24,29 +24,10 @@ const ImageGenerator = () => {
     setGeneratedImage(null);
     
     try {
-      // Call the Replicate API
-      const response = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          size: imageSize[0],
-        }),
-      });
+      // Use the direct function instead of fetching from an API endpoint
+      const result = await generateImage(prompt, imageSize[0]);
       
-      if (!response.ok) {
-        throw new Error("Failed to generate image");
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      setGeneratedImage(data.imageUrl);
+      setGeneratedImage(result.imageUrl);
       
       // Show success toast
       toast({
