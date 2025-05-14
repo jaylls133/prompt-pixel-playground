@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Settings } from "lucide-react";
+import { Settings, Download, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const ImageGenerator = () => {
   const [prompt, setPrompt] = useState("");
@@ -13,25 +14,84 @@ const ImageGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
+    setGeneratedImage(null);
     
-    // Simulate image generation
-    setTimeout(() => {
+    try {
+      // Call the Replicate API
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          size: imageSize[0],
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate image");
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      setGeneratedImage(data.imageUrl);
+      
+      // Show success toast
+      toast({
+        title: "Image generated successfully!",
+        description: "Your credits have been updated.",
+      });
+    } catch (error) {
+      console.error("Error generating image:", error);
+      toast({
+        title: "Failed to generate image",
+        description: error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
       setIsGenerating(false);
-      // Use a placeholder image from Unsplash
-      const images = [
-        "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-        "https://images.unsplash.com/photo-1531297484001-80022131f5a1",
-        "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
-      ];
-      const randomImage = images[Math.floor(Math.random() * images.length)];
-      setGeneratedImage(randomImage);
-    }, 2000);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+    
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `dreamcraft-ai-${Date.now()}.webp`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Image downloaded!",
+        description: "The image has been saved to your device.",
+      });
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the image",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -70,7 +130,12 @@ const ImageGenerator = () => {
                   className="bg-purple hover:bg-purple-dark text-white"
                   disabled={isGenerating || !prompt.trim()}
                 >
-                  {isGenerating ? "Generating..." : "Generate Image"}
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : "Generate Image"}
                 </Button>
               </div>
               
@@ -120,9 +185,9 @@ const ImageGenerator = () => {
                     <Button
                       variant="outline"
                       className="text-white border-white hover:bg-white hover:text-black"
-                      onClick={() => {}}
+                      onClick={handleDownload}
                     >
-                      Download
+                      <Download size={16} className="mr-1" /> Download
                     </Button>
                   </div>
                 </div>
